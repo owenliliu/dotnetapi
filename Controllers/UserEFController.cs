@@ -4,6 +4,7 @@ using DotnetApi.Models;
 using DotnetApi.Data;
 using DotNetApi.Data;
 using AutoMapper;
+using DotNetAPI.Data;
 namespace DotNetApi.Controllers;
 
 [ApiController]
@@ -11,10 +12,12 @@ namespace DotNetApi.Controllers;
 public class UserEFController : ControllerBase
 {
     DataContextEF _entityFramework;
+    IUserRepository _userRepository;
     IMapper _mapper;
-    public UserEFController(IConfiguration config)
+    public UserEFController(IConfiguration config, IUserRepository userRepository)
     {
         _entityFramework = new DataContextEF(config);
+        _userRepository = userRepository;
         _mapper = new Mapper(new MapperConfiguration(cfg =>
         {
             cfg.CreateMap<UserToAddDto, User>();
@@ -72,7 +75,7 @@ public class UserEFController : ControllerBase
             userDb.LastName = user.LastName;
             userDb.Email = user.Email;
             userDb.Gender = user.Gender;
-            if (_entityFramework.SaveChanges() > 0)
+            if (_userRepository.SaveChanges())
             {
                 return Ok();
             }
@@ -91,8 +94,8 @@ public class UserEFController : ControllerBase
         userDb.LastName = user.LastName;
         userDb.Email = user.Email;
         userDb.Gender = user.Gender;
-        _entityFramework.Add(userDb);
-        if (_entityFramework.SaveChanges() > 0)
+        _userRepository.AddEntity<User>(userDb);
+        if (_userRepository.SaveChanges())
         {
             return Ok();
         }
